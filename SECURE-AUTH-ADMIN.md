@@ -10,6 +10,12 @@ This adds a Render-hosted API and a GitHub Pages dashboard for Firebase Authenti
 - Provider apply uses Google's Identity Platform admin API and requires service-account permissions.
 - Email/password enablement and email-verification enforcement require Firebase/client setup too. The saved verification preference does not by itself enforce access.
 
+## Environment template
+- Use [`.env.example`](.env.example) as a checklist/template for the required variable names.
+- Copy it to a local `.env` only on your trusted computer if useful, then fill in the real values there.
+- The real `.env` is intentionally ignored by Git and must never be committed. The repository template contains placeholders only.
+- Render does not automatically load a `.env` file just because it exists in the repository. Add the variables in the Render service's **Environment** settings (or use a supported import option in the dashboard, if available). Keep secrets in Render, not GitHub.
+
 ## Deploy backend to Render
 1. Create a Render Web Service from this repository or use render.yaml.
 2. Configure:
