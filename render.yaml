@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: gf-chat-auth-admin
+    runtime: node
+    plan: free
+    buildCommand: npm install --omit=dev
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: FIREBASE_PROJECT_ID
+        value: secretchatwithgf
+      - key: FIREBASE_DATABASE_URL
+        value: https://secretchatwithgf-default-rtdb.asia-southeast1.firebasedatabase.app
+      - key: FIREBASE_SERVICE_ACCOUNT_JSON
+        sync: false
+      - key: SECRETS_ENCRYPTION_KEY
+        sync: false
+      - key: ADMIN_UIDS
+        sync: false
+      - key: ALLOWED_ORIGINS
+        value: https://ahsanibnewalid.github.io
