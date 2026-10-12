@@ -33,7 +33,7 @@ This adds a Render-hosted API and a GitHub Pages dashboard for Firebase Authenti
 - Never guess OAuth callback URLs; use the callback shown in Firebase/provider console.
 - Apple requires Apple Developer configuration and a key/Service ID. Microsoft may require tenant setup.
 - Enable Email/Password in Firebase Console at least once. The password switch records a preference and does not remotely toggle that provider.
-- The verification policy is stored as a preference only in this version; client and database access enforcement must be implemented separately.
+- Verified email is mandatory in the frontend and Realtime Database rules. The admin dashboard intentionally does not allow disabling this safety requirement.
 - Add ahsanibnewalid.github.io to Firebase Authentication authorized domains.
 - Rotate any secret that is accidentally exposed.
 
