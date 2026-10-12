@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator Utility</title>
+    <!-- Firebase SDK via CDN -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --panel-bg: #1e1e1e;
+            --text-color: #ffffff;
+            --accent-color: #4f46e5;
+            --accent-hover: #4338ca;
+            --danger-color: #ef4444;
+            --border-color: #333;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-color); min-height: 100vh; display: flex; justify-content: center; align-items: center; }
+        .container { width: 100%; max-width: 420px; padding: 20px; }
+        
+        /* Calculator Decoy Screen */
+        #calc-screen { background: var(--panel-bg); border-radius: 16px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .calc-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; cursor: pointer; }
+        .calc-header h2 { font-size: 1.1rem; color: #888; font-weight: 500; }
+        .display { width: 100%; background: #000; color: #fff; font-size: 2.5rem; text-align: right; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid var(--border-color); overflow-x: auto; }
+        .buttons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+        button { background: #2a2a2a; color: #fff; border: none; padding: 20px; font-size: 1.2rem; border-radius: 8px; cursor: pointer; transition: background 0.2s; }
+        button:hover { background: #3a3a3a; }
+        button.operator { background: #3b82f6; }
+        button.operator:hover { background: #2563eb; }
+        button.action { background: #ef4444; }
+        button.action:hover { background: #dc2626; }
+        button.equals { background: #10b981; grid-column: span 2; }
+        button.equals:hover { background: #059669; }
+
+        /* Secure Vault Screen */
+        #vault-screen { display: none; background: var(--panel-bg); border-radius: 16px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); width: 100%; }
+        .vault-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
+        .vault-header h2 { font-size: 1.1rem; color: #10b981; }
+        .lock-btn { background: var(--danger-color); padding: 6px 10px; font-size: 0.85rem; border-radius: 6px; }
+        
+        .room-setup { background: #111; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 0.85rem; display: flex; gap: 8px; align-items: center; }
+        .room-setup input { flex: 1; padding: 8px; background: #222; color: #fff; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.9rem; margin: 0; }
+        .room-setup button { padding: 8px 12px; background: var(--accent-color); font-size: 0.85rem; border-radius: 6px; }
+
+        .tabs { display: flex; gap: 10px; margin-bottom: 15px; }
+        .tab-btn { flex: 1; padding: 8px; font-size: 0.85rem; background: #2a2a2a; border-radius: 6px; }
+        .tab-btn.active { background: var(--accent-color); }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Chat Styles */
+        .chat-box { height: 250px; background: #111; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+        .chat-message { padding: 8px 12px; border-radius: 8px; max-width: 80%; font-size: 0.9rem; word-break: break-word; }
+        .chat-message.sent { background: #3b82f6; align-self: flex-end; }
+        .chat-message.received { background: #27272a; align-self: flex-start; }
+        .chat-input-row { display: flex; gap: 8px; }
+        .chat-input-row input { flex: 1; margin: 0; padding: 10px; border-radius: 8px; background: #111; color: #fff; border: 1px solid var(--border-color); }
+        .chat-input-row button { padding: 10px 16px; background: var(--accent-color); border-radius: 8px; font-size: 0.9rem; }
+
+        /* Location Styles */
+        .location-box { background: #111; padding: 12px; border-radius: 8px; margin-bottom: 10px; font-size: 0.9rem; word-break: break-all; }
+        .vault-action-btn { background: var(--accent-color); width: 100%; padding: 10px; border-radius: 8px; font-size: 0.95rem; cursor: pointer; }
+        .vault-action-btn:hover { background: var(--accent-hover); }
+        .status-msg { font-size: 0.8rem; color: #a1a1aa; margin-top: 5px; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Calculator Decoy -->
+        <div id="calc-screen">
+            <div class="calc-header" ondblclick="unlockVault()" title="Double click header to unlock">
+                <h2>Standard Calculator</h2>
+                <span style="font-size: 0.8rem; color: #555;">v2.0</span>
+            </div>
+            <div class="display" id="calc-display">0</div>
+            <div class="buttons">
+                <button class="action" onclick="clearCalc()">C</button>
+                <button onclick="appendValue('/')" class="operator">/</button>
+                <button onclick="appendValue('*')" class="operator">*</button>
+                <button onclick="appendValue('-')" class="operator">-</button>
+                <button onclick="appendValue('7')">7</button>
+                <button onclick="appendValue('8')">8</button>
+                <button onclick="appendValue('9')">9</button>
+                <button onclick="appendValue('+')" class="operator">+</button>
+                <button onclick="appendValue('4')">4</button>
+                <button onclick="appendValue('5')">5</button>
+                <button onclick="appendValue('6')">6</button>
+                <button onclick="appendValue('1')">1</button>
+                <button onclick="appendValue('2')">2</button>
+                <button onclick="appendValue('3')">3</button>
+                <button onclick="appendValue('0')">0</button>
+                <button onclick="appendValue('.')">.</button>
+                <button class="equals" onclick="calculate()">=</button>
+            </div>
+        </div>
+
+        <!-- Secure Vault Screen -->
+        <div id="vault-screen">
+            <div class="vault-header">
+                <h2>🔒 Private Portal</h2>
+                <button class="lock-btn" onclick="lockVault()">Lock / Exit</button>
+            </div>
+            
+            <div class="room-setup">
+                <span>Room:</span>
+                <input type="text" id="room-id-input" value="secret-room-123" placeholder="Secret Key">
+                <button onclick="joinRoom()">Join</button>
+            </div>
+
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('chat')">Live Chat</button>
+                <button class="tab-btn" onclick="switchTab('location')">GPS Sync</button>
+            </div>
+
+            <!-- Chat Tab -->
+            <div id="tab-chat" class="tab-content active">
+                <div class="chat-box" id="chat-messages"></div>
+                <div class="chat-input-row">
+                    <input type="text" id="chat-input" placeholder="Type message..." onkeypress="handleKeypress(event)">
+                    <button onclick="sendMessage()">Send</button>
+                </div>
+            </div>
+
+            <!-- Location Tab -->
+            <div id="tab-location" class="tab-content">
+                <div class="location-box" id="loc-output">Share location to sync with room partner.</div>
+                <button class="vault-action-btn" onclick="shareLocation()">Update & Share My Location</button>
+                <div class="status-msg" id="loc-status"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Your Firebase project config
+        const firebaseConfig = {
+            apiKey: "AIzaSyAt6SBPcVZqvONYWUo25JQPxSg86Ehw2TY",
+            authDomain: "secretchatwithgf.firebaseapp.com",
+            databaseURL: "https://secretchatwithgf-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "secretchatwithgf",
+            storageBucket: "secretchatwithgf.firebasestorage.app",
+            messagingSenderId: "663122421757",
+            appId: "1:663122421757:web:3944a28b07fa7fdc689b94",
+            measurementId: "G-SEE9N02D18"
+        };
+
+        // Initialize Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+
+        let currentInput = '0';
+        const display = document.getElementById('calc-display');
+        const SECRET_PIN = '1234';
+        let currentRoom = 'secret-room-123';
+        let chatIdListener = null;
+
+        function appendValue(val) {
+            if (currentInput === '0' && val !== '.') {
+                currentInput = val;
+            } else {
+                currentInput += val;
+            }
+            display.innerText = currentInput;
+        }
+
+        function clearCalc() {
+            currentInput = '0';
+            display.innerText = currentInput;
+        }
+
+        function calculate() {
+            if (currentInput === SECRET_PIN) {
+                unlockVault();
+                return;
+            }
+            try {
+                currentInput = eval(currentInput.replace(/×/g, '*').replace(/÷/g, '/')).toString();
+                display.innerText = currentInput;
+            } catch (e) {
+                display.innerText = 'Error';
+                currentInput = '0';
+            }
+        }
+
+        function unlockVault() {
+            document.getElementById('calc-screen').style.display = 'none';
+            document.getElementById('vault-screen').style.display = 'block';
+            joinRoom();
+        }
+
+        function lockVault() {
+            document.getElementById('vault-screen').style.display = 'none';
+            document.getElementById('calc-screen').style.display = 'block';
+            clearCalc();
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                lockVault();
+            }
+        });
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            if (tabName === 'chat') {
+                document.querySelector('.tabs button:nth-child(1)').classList.add('active');
+                document.getElementById('tab-chat').classList.add('active');
+            } else if (tabName === 'location') {
+                document.querySelector('.tabs button:nth-child(2)').classList.add('active');
+                document.getElementById('tab-location').classList.add('active');
+            }
+        }
+
+        function joinRoom() {
+            const roomInput = document.getElementById('room-id-input').value.trim();
+            if (!roomInput) return;
+            currentRoom = roomInput;
+
+            const chatBox = document.getElementById('chat-messages');
+            chatBox.innerHTML = '';
+
+            if (chatIdListener) {
+                db.ref('rooms/' + currentRoom + '/messages').off();
+            }
+
+            // Listen for real-time messages in this room
+            chatIdListener = db.ref('rooms/' + currentRoom + '/messages').limitToLast(50);
+            chatIdListener.on('child_added', (snapshot) => {
+                const msg = snapshot.val();
+                appendMessageToUI(msg.text, msg.sender === deviceId);
+            });
+
+            // Listen for real-time partner location
+            db.ref('rooms/' + currentRoom + '/location').on('value', (snapshot) => {
+                const loc = snapshot.val();
+                if (loc && loc.sender !== deviceId) {
+                    const output = document.getElementById('loc-output');
+                    output.innerHTML = `Partner Location:<br>Lat: ${loc.lat.toFixed(5)}, Lon: ${loc.lon.toFixed(5)}<br><a href="${loc.link}" target="_blank" style="color: #3b82f6;">Open in Google Maps</a><br><small style="color:#777">Updated: ${loc.time}</small>`;
+                }
+            });
+        }
+
+        // Generate unique ID for this device to distinguish sent vs received messages
+        let deviceId = localStorage.getItem('device_id');
+        if (!deviceId) {
+            deviceId = 'user_' + Math.random().toString(36).substring(2, 9);
+            localStorage.setItem('device_id', deviceId);
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            db.ref('rooms/' + currentRoom + '/messages').push({
+                text: text,
+                sender: deviceId,
+                timestamp: Date.now()
+            });
+
+            input.value = '';
+        }
+
+        function handleKeypress(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        function appendMessageToUI(text, isSent) {
+            const chatBox = document.getElementById('chat-messages');
+            const div = document.createElement('div');
+            div.className = 'chat-message ' + (isSent ? 'sent' : 'received');
+            div.innerText = text;
+            chatBox.appendChild(div);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function shareLocation() {
+            const status = document.getElementById('loc-status');
+            const output = document.getElementById('loc-output');
+            if (!navigator.geolocation) {
+                status.innerText = 'Geolocation not supported';
+                return;
+            }
+            status.innerText = 'Fetching GPS...';
+            navigator.geolocation.getCurrentPosition((position) => {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+                const mapsLink = `https://www.google.com/maps?q=${lat},${lon}`;
+                const timeStr = new Date().toLocaleTimeString();
+
+                db.ref('rooms/' + currentRoom + '/location').set({
+                    lat: lat,
+                    lon: lon,
+                    link: mapsLink,
+                    time: timeStr,
+                    sender: deviceId
+                });
+
+                output.innerHTML = `My Location Shared!<br>Lat: ${lat.toFixed(5)}, Lon: ${lon.toFixed(5)}<br><a href="${mapsLink}" target="_blank" style="color: #3b82f6;">Open in Google Maps</a>`;
+                status.innerText = 'Location synced successfully!';
+            }, () => {
+                status.innerText = 'Location permission denied.';
+            });
+        }
+    </script>
+</body>
+</html>
