@@ -1,4 +1,16 @@
-const test=require('node:test');const assert=require('node:assert/strict');const fs=require('node:fs');const vm=require('node:vm');
-function parser(){const s=fs.readFileSync('index.html','utf8');const a=s.indexOf('function tokenize(s)');const b=s.indexOf('function show()',a);assert.ok(a>=0&&b>a);const sandbox={};vm.runInNewContext(s.slice(a,b)+'\nthis.parseArithmetic=parseArithmetic;',sandbox);return sandbox.parseArithmetic;}
-test('calculator supports precedence, parentheses, unary signs and decimals',()=>{const p=parser();assert.equal(p('2+2*3'),'8');assert.equal(p('(2+2)*3'),'12');assert.equal(p('-4/2'),'-2');assert.equal(p('0.1+0.2'),'0.3')});
-test('calculator rejects malformed and unsafe input',()=>{const p=parser();for(const s of ['1/0','2+','1**2','alert(1)',''])assert.throws(()=>p(s))});
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const parseArithmetic = require('../calculator.js');
+
+test('calculator supports precedence, parentheses, unary signs and decimals', () => {
+  assert.equal(parseArithmetic('2+2*3'), '8');
+  assert.equal(parseArithmetic('(2+2)*3'), '12');
+  assert.equal(parseArithmetic('-4/2'), '-2');
+  assert.equal(parseArithmetic('0.1+0.2'), '0.3');
+});
+
+test('calculator rejects malformed and unsafe input', () => {
+  for (const expression of ['1/0', '2+', '1**2', 'alert(1)', '']) {
+    assert.throws(() => parseArithmetic(expression));
+  }
+});
