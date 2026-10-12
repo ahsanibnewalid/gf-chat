@@ -45,7 +45,7 @@ The rules test uses local Firebase emulators and must not use production data.
 ## Security notes
 - Admin authorization is checked on the backend using the UID allowlist, not merely by hiding dashboard controls.
 - Provider secrets are encrypted at rest and never returned by the status API. The encryption key must be backed up securely; changing it without re-encrypting records makes stored credentials unreadable.
-- Email/password verification is enforced by the current frontend before chat access, but the admin verification-policy switch is only a stored policy preference in this version. It does not remotely alter Realtime Database rules.
+- Verified email is mandatory for all chat accounts and enforced in both the frontend and Realtime Database rules.
 - Social provider sign-in requires the provider to be enabled in Firebase and configured in the provider's developer console. OAuth callback URLs must match exactly.
 - Apple requires Apple Developer setup; Microsoft account types and tenant access are configured in Microsoft Entra.
 - Security depends on the rules actually being published to the correct Firebase project.
