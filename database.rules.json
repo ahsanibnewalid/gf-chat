@@ -1,0 +1,31 @@
+{
+  "rules": {
+    ".read": false, ".write": false,
+    "rooms": {
+      "$roomId": {
+        ".read": "auth != null && data.child('members').child(auth.uid).val() === true",
+        ".write": "auth != null && !data.exists() && newData.child('ownerUid').val() === auth.uid && newData.child('members').child(auth.uid).val() === true && newData.child('members').numChildren() === 1",
+        "ownerUid": { ".validate": "newData.isString() && newData.val() === data.val()" },
+        "members": {
+          "$memberUid": {
+            ".write": "auth != null && root.child('rooms').child($roomId).child('ownerUid').val() === auth.uid && newData.val() === true && $memberUid.matches(/^[A-Za-z0-9_-]{1,128}$/)",
+            ".validate": "newData.val() === true"
+          }
+        },
+        "messages": {
+          "$messageId": {
+            ".write": "auth != null && root.child('rooms').child($roomId).child('members').child(auth.uid).val() === true && !data.exists() && newData.child('sender').val() === auth.uid && newData.child('text').isString() && newData.child('text').val().length > 0 && newData.child('text').val().length <= 1000 && newData.child('timestamp').isNumber() && newData.child('timestamp').val() >= now - 60000 && newData.child('timestamp').val() <= now + 60000",
+            ".validate": "newData.hasChildren(['sender','text','timestamp']) && newData.child('sender').val() === auth.uid && newData.child('text').isString() && newData.child('text').val().length > 0 && newData.child('text').val().length <= 1000 && newData.child('timestamp').isNumber()"
+          }
+        },
+        "locations": {
+          "$uid": {
+            ".read": "auth != null && root.child('rooms').child($roomId).child('members').child(auth.uid).val() === true",
+            ".write": "auth != null && auth.uid === $uid && root.child('rooms').child($roomId).child('members').child(auth.uid).val() === true && (!newData.exists() || (newData.child('lat').isNumber() && newData.child('lat').val() >= -90 && newData.child('lat').val() <= 90 && newData.child('lon').isNumber() && newData.child('lon').val() >= -180 && newData.child('lon').val() <= 180 && newData.child('timestamp').isNumber() && newData.child('timestamp').val() <= now + 60000))",
+            ".validate": "!newData.exists() || (newData.hasChildren(['lat','lon','timestamp']) && newData.getChildrenCount() === 3)"
+          }
+        }
+      }
+    }
+  }
+}
