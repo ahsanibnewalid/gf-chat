@@ -13,7 +13,7 @@ Static calculator and Firebase-backed private chat with explicit, one-time locat
 1. In Firebase Console, confirm the existing project's exact Web app config and Realtime Database URL.
 2. Enable Authentication > Sign-in method > Email/Password.
 3. Add ahsanibnewalid.github.io to Authentication authorized domains.
-4. Copy firebase-config.example.js to firebase-config.js and fill in the existing values. Never add service-account keys to frontend code.
+4. Check the existing firebase-config.js against Firebase Console. It contains the project's existing public web-app configuration, not an admin credential. firebase-config.example.js is only a template. Never add service-account keys to frontend code.
 5. Review database.rules.json and back up the current rules and data paths before publishing. Test with the emulator first.
 6. Publish reviewed rules to the intended Firebase project. Do not blindly replace rules if this database is shared with another application.
 7. Deploy the static site to GitHub Pages. Location requires HTTPS.
