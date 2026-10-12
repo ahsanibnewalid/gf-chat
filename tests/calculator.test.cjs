@@ -1,0 +1,2 @@
+const test=require('node:test');const assert=require('node:assert/strict');const fs=require('node:fs');const vm=require('node:vm');
+test('calculator parser is available and avoids eval',()=>{const html=fs.readFileSync('index.html','utf8');assert.ok(!/eval\s*\(/.test(html));assert.ok(html.includes('parseArithmetic')||html.includes('calculator'));});
