@@ -16,7 +16,7 @@ See SECURE-AUTH-ADMIN.md for full deployment instructions.
 
 1. Deploy the backend with render.yaml or create a Render Web Service.
 2. Configure Render environment variables: FIREBASE_SERVICE_ACCOUNT_JSON, SECRETS_ENCRYPTION_KEY, ADMIN_UIDS, FIREBASE_PROJECT_ID, FIREBASE_DATABASE_URL, and ALLOWED_ORIGINS.
-3. Copy admin-config.example.js to admin-config.js, set the public Render service URL, and commit it to the GitHub Pages branch.
+3. Edit the existing admin-config.js and replace the placeholder with the public Render service URL. This file contains only a public URL.
 4. Open https://ahsanibnewalid.github.io/gf-chat/admin.html and sign in with a Firebase account whose UID is in ADMIN_UIDS.
 5. Enter each provider's credentials, Save, then Apply to Firebase. Complete the provider's own developer-console setup and callback URL configuration first.
 6. Enable Email/Password in Firebase Authentication if it is not already enabled. The dashboard can apply the email/password enable/disable setting through Identity Toolkit API.
