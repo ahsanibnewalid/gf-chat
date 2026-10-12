@@ -23,8 +23,8 @@ This adds a Render-hosted API and a GitHub Pages dashboard for Firebase Authenti
 4. Visit /health on the Render URL; it should return JSON with ok=true.
 
 ## Publish admin dashboard
-1. Copy admin-config.example.js to admin-config.js and replace the placeholder with the real Render URL.
-2. Commit admin-config.js to GitHub Pages. It contains only the public URL.
+1. Edit the existing admin-config.js and replace the placeholder with the real Render URL. It contains only a public URL.
+2. Commit the updated admin-config.js to the GitHub Pages branch.
 3. Open https://ahsanibnewalid.github.io/gf-chat/admin.html and sign in with the Firebase account whose UID is in ADMIN_UIDS.
 4. Enter credentials, Save, then Apply to Firebase. Set each provider's developer-console settings and exact callback URLs first.
 
