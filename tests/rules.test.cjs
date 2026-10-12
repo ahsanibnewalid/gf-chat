@@ -1,0 +1,3 @@
+const test=require('node:test');const assert=require('node:assert/strict');const {initializeTestEnvironment,assertSucceeds,assertFails}=require('@firebase/rules-unit-testing');const {ref,set,get}=require('firebase/database');const fs=require('node:fs');let env;
+test.before(async()=>{env=await initializeTestEnvironment({projectId:'gf-chat-rules-test',database:{rules:fs.readFileSync('database.rules.json','utf8')}})});test.after(async()=>{if(env)await env.cleanup()});
+test('unauthenticated access is denied',async()=>{const db=env.unauthenticatedContext().database();await assertFails(get(ref(db,'rooms')));await assertFails(set(ref(db,'rooms/'+ 'a'.repeat(48)),{ownerUid:'fake',members:{fake:true}}));});
