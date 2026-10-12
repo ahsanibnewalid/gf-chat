@@ -5,7 +5,8 @@
   "scripts": {
     "start": "node server.js",
     "test:calculator": "node --test tests/calculator.test.cjs",
-    "test:rules": "firebase emulators:exec --project gf-chat-rules-test --only database \"node --test tests/rules.test.cjs\""
+    "test:rules": "firebase emulators:exec --project gf-chat-rules-test --only database \"node --test tests/rules.test.cjs\"",
+    "test:syntax": "node --test tests/frontend-syntax.test.cjs"
   },
   "dependencies": {
     "cors": "^2.8.5",
