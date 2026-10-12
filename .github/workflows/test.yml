@@ -13,5 +13,6 @@ jobs:
           node-version: 20
       - run: npm install --no-audit --no-fund
       - run: node --check server.js
+      - run: npm run test:syntax
       - run: npm run test:calculator
       - run: npm run test:rules
