@@ -4,7 +4,7 @@
     "rooms": {
       "$roomId": {
         ".read": "auth != null && data.child('members').child(auth.uid).val() === true",
-        ".write": "auth != null && !data.exists() && newData.child('ownerUid').val() === auth.uid && newData.child('members').child(auth.uid).val() === true && newData.child('members').numChildren() === 1",
+        ".write": "auth != null && !data.exists() && newData.child('ownerUid').val() === auth.uid && newData.child('members').child(auth.uid).val() === true",
         "ownerUid": { ".validate": "newData.isString() && (!data.exists() ? newData.val() === auth.uid : newData.val() === data.val())" },
         "members": {
           "$memberUid": {
@@ -22,7 +22,7 @@
           "$uid": {
             ".read": "auth != null && root.child('rooms').child($roomId).child('members').child(auth.uid).val() === true",
             ".write": "auth != null && auth.uid === $uid && root.child('rooms').child($roomId).child('members').child(auth.uid).val() === true && (!newData.exists() || (newData.child('lat').isNumber() && newData.child('lat').val() >= -90 && newData.child('lat').val() <= 90 && newData.child('lon').isNumber() && newData.child('lon').val() >= -180 && newData.child('lon').val() <= 180 && newData.child('timestamp').isNumber() && newData.child('timestamp').val() <= now + 60000))",
-            ".validate": "!newData.exists() || (newData.hasChildren(['lat','lon','timestamp']) && newData.getChildrenCount() === 3)"
+            ".validate": "!newData.exists() || (newData.hasChildren(['lat','lon','timestamp']))"
           }
         }
       }
